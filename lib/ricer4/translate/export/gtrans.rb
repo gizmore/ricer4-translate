@@ -29,6 +29,10 @@ class Ricer4::GTrans
     @text, @iso = text, iso
   end
   
+  def source_iso
+    detect_iso
+  end
+  
   def valid_iso?(iso, allow_auto=true)
     (allow_auto && iso == AUTO) || ISOS.include?(iso.to_s)
   end
@@ -40,6 +44,7 @@ class Ricer4::GTrans
   def detect_iso
     iso = to('en')[:iso]
     @iso = iso if @iso == AUTO
+    @iso
   end
   
   def to(iso)
@@ -52,7 +57,7 @@ class Ricer4::GTrans
     request = Net::HTTP::Get.new(uri.request_uri, {'User-Agent' => useragent})
     response = http.request(request)
     @cache[iso] = {
-      text: fetch_translation(response.body),
+      text: fetch_translation(response.body).force_encoding('UTF-8'),
       iso: fetch_iso(response.body),
       source_iso: @iso,
       target_iso: iso

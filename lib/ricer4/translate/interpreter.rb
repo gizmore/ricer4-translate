@@ -22,12 +22,12 @@ module Ricer4::Plugins::Translate
     end
     def execute_enable; save_interpreting('1'); rply(:msg_enabled, isos: display_interpreter_isos); end
     def execute_disable; save_interpreting('0'); rply(:msg_disabled, isos: display_interpreter_isos); end
-    def save_interpreting(on_off); save_setting(:translating, interpreter_scope, on_off+get_setting(:translating)[1..-1]); end
+    def save_interpreting(on_off); save_setting(:translating, on_off+get_setting(:translating)[1..-1]); end
 
     # Configure
     has_usage '<lang_iso|multiple:true>'
     def execute(isos)
-      save_setting(:translating, interpreter_scope, '1'+isos.join(','));
+      save_setting(:translating, '1'+isos.join(','));
       execute_enable
     end
 
@@ -40,19 +40,22 @@ module Ricer4::Plugins::Translate
     # Event    
     def on_privmsg
       
+      return unless is_interpreting? # Disabled
+
       line = current_message.line
       
       # Ignore some messages
-      return if line.length < 12
+#      return if line.length < 12
       return if channel && current_message.is_triggered? # Channel commands ignored
-      return unless is_interpreting? # Disabled
-      return if channel.nil? && plugins_for_line(line).length > 0 # ignore commands
+      return if channel.nil? && bot.loader.get_plugin_for_line(line) # ignore commands
 
       # Do the interpreter stuff
       threaded do
         gtrans = Ricer4::GTrans.new(line)
         interpreter_isos.each do |iso|
-          translate_single(gtrans, iso)
+          if iso != gtrans.source_iso
+            translate_single(gtrans, iso)
+          end
         end
       end
     end
