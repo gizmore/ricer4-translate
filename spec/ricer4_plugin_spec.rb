@@ -29,9 +29,12 @@ describe Ricer4::Plugins::Translate do
     expect(bot.exec_line_for("Translate/Interpreter")).to start_with("msg_status:{\"onoff\":")
     expect(bot.exec_line_for("Translate/Interpreter", "es,fr,de")).to eq("msg_enabled:{\"isos\":\"es,fr,de\"}")
 
-    expect(bot.exec_line("Hallo Du hübscher")).to eq("msg_enabled:{\"isos\":\"es,fr,de\"}")
-    
-    
+    # Interpreter got two lines
+    bot.exec_line("Hallo Du hübscher")
+    output = bot.exec_output
+    expect(output.length).to eq(2)
+    expect(output[0]).to eq("msg_interpreted:{\"iso\":\"es\",\"text\":\"Hola preciosa que\"}")
+    expect(output[1]).to eq("msg_interpreted:{\"iso\":\"fr\",\"text\":\"Bonjour vous belle\"}")
   end
   
   
